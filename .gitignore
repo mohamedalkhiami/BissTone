@@ -1,2 +1,6 @@
-node_modules
-*.temp
+node_modules/*
+typings/*
+npm-debug.log
+.settings/*
+.git/*
+bower_components/*
