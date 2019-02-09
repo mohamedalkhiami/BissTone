@@ -41,3 +41,5 @@ for deploying run this command in project directory.
 ```bash
 npm run task deploy
 ```
+now open port 80 or the port you've entered during configure.
+username and pass is `root` lateron we can change it

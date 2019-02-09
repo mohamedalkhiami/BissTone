@@ -63,6 +63,12 @@
             let id = '<%= id %>'
             let data = '<%- data %>';
             data = data && JSON.parse(data)
+            if (!data) {
+                data = [
+                    { id: 1, parentId: null, name: "Name", title: "CEO" }
+                ]
+                saveToDatabase(data)
+            }
             function callHandler(nodeId) {
                 var nodeData = chart.get(nodeId);
                 var employeeName = nodeData["name"];
@@ -105,9 +111,7 @@
                     init();
                     saveToDatabase()
                 },
-                dataSource: data || [
-                    { id: 1, parentId: null, name: "Name", title: "CEO" }
-                ]
+                dataSource: data
 
             });
             function getNodeByClickedBtn(el) {
@@ -118,8 +122,8 @@
                 }
                 return null;
             }
-            async function saveToDatabase() {
-                let data = Object.values(orgChart.nodes).map(a => new Object(a)).map(({
+            async function saveToDatabase(data) {
+                data = data || Object.values(orgChart.nodes).map(a => new Object(a)).map(({
                     id, pid, data
                 }) => ({ id: parseInt(id), parentId: parseInt(pid), ...data }))
                 console.log('saving', data)

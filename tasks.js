@@ -25,8 +25,9 @@ const services = new class Services {
     async deploy() {
         let imagename = await this.build()
         let webPort = await this.prompt('in which port do you want to listen our web?', '80')
-        let dbPass = await this.prompt('DBpass? please enter if you want to set default, elesewere please type.', 'root')
-        let addAdminer = await this.prompt('do you want to add phpMyAdmin (yes/no) ?', 'yes')
+        // let dbPass = await this.prompt('DBpass? please enter if you want to set default, elesewere please type.', 'root')
+        let dbPass = 'root';
+        let addAdminer = await this.prompt('do you want to add phpMyAdmin (yes/no) ?', 'no')
         let adminerPort;
         if (addAdminer.toLowerCase() === 'yes') {
             adminerPort = await this.prompt('in which port do you want to listen phpMyAdmin ?', '8080')
@@ -37,6 +38,9 @@ const services = new class Services {
     }
     down() {
         this.exec(`docker-compose -f ${this.docker_compose_path} down`)
+    }
+    logs() {
+        this.exec(`docker-compose -f ${this.docker_compose_path} logs`)
     }
     run(service) {
         this[service]()

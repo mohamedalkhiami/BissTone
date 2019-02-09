@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <title>Document</title>
+</head>
+
+<body>
+    <nav>
+        <div class="nav-wrapper teal">
+            <a href="#" class="brand-logo center">getOrgChart</a>
+        </div>
+    </nav>
+    <!-- <h1>All Apps</h1> -->
+    <div class="container">
+        <h4>
+            All Charts
+        </h4>
+        <div class="collection">
+            <% for(var i=0; i < data.length; i++) { %>
+            <a class="collection-item" href="/<%= data[i] %>">
+                <%= data[i] %>
+            </a>
+            <% } %>
+        </div>
+        <h4>
+            New App
+        </h4>
+        <div class="input-field col s6">
+            <input id="app_name" type="text" class="validate">
+            <label for="app_name">App Name</label>
+        </div>
+        <a href="javascript:submit()" class="waves-effect waves-light btn input-field col s6">Create</a>
+
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script>
+        let data = "<%- data %>".split(',')
+            function submit() {
+                let appname = document.querySelector('#app_name').value;
+                console.log({ appname })
+                if (!appname)   M.toast({html: 'app name is empty'})
+                else if (data.indexOf(appname) !== -1)   M.toast({html: 'app already exists'})
+                else window.location.href = `/${appname}`
+            }
+    </script>
+</body>
+
+</html>

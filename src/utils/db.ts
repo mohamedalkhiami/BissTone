@@ -1,10 +1,9 @@
 const mariadb = require('mariadb');
-
 // Optimally these are defined in a secret storage like Ansible Vault, AWS Secrets Manager, etc.
 const pool = mariadb.createPool({
-    host: 'localhost',
-    user: 'get_org_chart',
-    password: 'kubify_get_org_chart',
+    host: process.env.DB_HOST || 'localhost',
+    user: 'root',
+    password: 'root',
     database: 'kubify_get_org_chart',
     connectionLimit: 5,
 });
@@ -24,20 +23,35 @@ const data_table = new class {
 
     }
     async get(id: string): Promise<any[]> {
-        const q = 'SELECT data FROM data_table WHERE id==?';
+        const q = 'SELECT data FROM data_table WHERE secId = ?';
         return await query(q, [id]);
+    }
+    async getAll(columns = ["secId", "data"]): Promise<any[]> {
+        const q = `SELECT ${columns.map(a => "`" + a + "`").join(', ')} FROM data_table`;
+        return await query(q, []);
     }
     async set(id: string, data: {
         [k: string]: any
     }): Promise<any[]> {
-        const q = 'UPDATE data SET data=? WHERE id==?';
+        const q = 'UPDATE data_table SET data = ? WHERE secId = ?';
         return await query(q, [JSON.stringify(data), id]);
     }
-    async add(data: {
+    async setOrAdd(id: string, data: {
         [k: string]: any
     }): Promise<any[]> {
-        let q = 'INSERT INTO test(`data`) VALUES(?)'
-        return await query(q, [JSON.stringify(data)]);
+        let res = await this.get(id)
+        if (!res[0]) {
+            await this.add(id, data)
+        } else {
+            await this.set(id, data)
+        }
+        return await this.get(id)
+    }
+    async add(id, data: {
+        [k: string]: any
+    }): Promise<any[]> {
+        let q = 'INSERT INTO data_table(secId, data) VALUES(?, ?)'
+        return await query(q, [id, JSON.stringify(data)]);
     }
     // async add(data: {
     //     [k: string]: any
@@ -50,6 +64,7 @@ const data_table = new class {
         const q = `
           CREATE TABLE IF NOT EXISTS data_table (
             id MEDIUMINT NOT NULL AUTO_INCREMENT,
+            secId TEXT NOT NULL,
             data TEXT,
             PRIMARY KEY (id)
           );
