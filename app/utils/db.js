@@ -9,43 +9,47 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const mariadb = require('mariadb');
-const pool = mariadb.createPool({
+const rootPool = mariadb.createPool({
     host: process.env.DB_HOST || 'localhost',
     user: 'root',
+    database: "mysql",
     password: 'root',
-    database: 'kubify_get_org_chart',
     connectionLimit: 5,
 });
-const query = (q, params) => __awaiter(this, void 0, void 0, function* () {
-    const conn = yield pool.getConnection();
-    const result = yield conn.query(q, params);
-    if (conn)
-        conn.end();
-    if ('affectedRows' in result) {
-        return [];
-    }
-    return result.map(row => row);
-});
-exports.query = query;
 const data_table = new class {
     constructor() {
+        this.init();
     }
+    query(q, params, lPool) {
+        return __awaiter(this, void 0, void 0, function* () {
+            lPool = lPool || this.pool;
+            const conn = yield lPool.getConnection();
+            const result = yield conn.query(q, params);
+            if (conn)
+                conn.end();
+            if ('affectedRows' in result) {
+                return [];
+            }
+            return result.map(row => row);
+        });
+    }
+    ;
     get(id) {
         return __awaiter(this, void 0, void 0, function* () {
             const q = 'SELECT data FROM data_table WHERE secId = ?';
-            return yield query(q, [id]);
+            return yield this.query(q, [id]);
         });
     }
     getAll(columns = ["secId", "data"]) {
         return __awaiter(this, void 0, void 0, function* () {
             const q = `SELECT ${columns.map(a => "`" + a + "`").join(', ')} FROM data_table`;
-            return yield query(q, []);
+            return yield this.query(q, []);
         });
     }
     set(id, data) {
         return __awaiter(this, void 0, void 0, function* () {
             const q = 'UPDATE data_table SET data = ? WHERE secId = ?';
-            return yield query(q, [JSON.stringify(data), id]);
+            return yield this.query(q, [JSON.stringify(data), id]);
         });
     }
     setOrAdd(id, data) {
@@ -63,11 +67,19 @@ const data_table = new class {
     add(id, data) {
         return __awaiter(this, void 0, void 0, function* () {
             let q = 'INSERT INTO data_table(secId, data) VALUES(?, ?)';
-            return yield query(q, [id, JSON.stringify(data)]);
+            return yield this.query(q, [id, JSON.stringify(data)]);
         });
     }
     init() {
         return __awaiter(this, void 0, void 0, function* () {
+            yield this.query(`CREATE DATABASE IF NOT EXISTS kubify_get_org_chart;`, [], rootPool);
+            this.pool = mariadb.createPool({
+                host: process.env.DB_HOST || 'localhost',
+                user: 'root',
+                password: 'root',
+                database: 'kubify_get_org_chart',
+                connectionLimit: 5,
+            });
             const q = `
           CREATE TABLE IF NOT EXISTS data_table (
             id MEDIUMINT NOT NULL AUTO_INCREMENT,
@@ -75,11 +87,12 @@ const data_table = new class {
             data TEXT,
             PRIMARY KEY (id)
           );
-        `;
-            return yield query(q, []);
+          `;
+            return yield this.query(q, []);
         });
     }
 };
 exports.data_table = data_table;
-data_table.init();
+let query = data_table.query;
+exports.query = query;
 //# sourceMappingURL=db.js.map

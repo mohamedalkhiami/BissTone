@@ -10,6 +10,7 @@ version: '3.1'
 services:
   web:
     image: ${imagename}
+    restart: always
     ports:
       - ${webPort}:80 
   db:
