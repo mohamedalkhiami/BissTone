@@ -1,17 +1,19 @@
 const mariadb = require('mariadb');
 // Optimally these are defined in a secret storage like Ansible Vault, AWS Secrets Manager, etc.
-const rootPool = mariadb.createPool({
+var rootPool;
+createPool({
     host: process.env.DB_HOST || 'localhost',
     user: 'root',
     database: "mysql",
     password: 'root',
     connectionLimit: 5,
+}).then(async (RP) => {
+    rootPool = RP
+    data_table.init()
 });
 
 const data_table = new class {
-    constructor() {
-        this.init()
-    }
+    constructor() { }
 
     async query(q: string, params: any[], lPool?): Promise<any[]> {
         lPool = lPool || this.pool
@@ -64,7 +66,7 @@ const data_table = new class {
     pool;
     async init(): Promise<any[]> {
         await this.query(`CREATE DATABASE IF NOT EXISTS kubify_get_org_chart;`, [], rootPool)
-        this.pool = mariadb.createPool({
+        this.pool = await createPool({
             host: process.env.DB_HOST || 'localhost',
             user: 'root',
             password: 'root',
@@ -82,7 +84,21 @@ const data_table = new class {
         return await this.query(q, []);
     }
 }
-let query = data_table.query
+let query = data_table.query;
+function createPool(cfg) {
+    return new Promise(async (res, rej) => {
+        try {
+            let resp = mariadb.createPool(cfg);
+            res(resp)
+        } catch (e) {
+            setTimeout(async () => {
+                let resp = await createPool(cfg);
+                res(resp)
+            }, 1000)
+
+        }
+    })
+}
 export {
     query,
     data_table

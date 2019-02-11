@@ -25,6 +25,7 @@ const services = new class Services {
     async deploy() {
         let imagename = await this.build()
         let webPort = await this.prompt('in which port do you want to listen our web?', '80')
+        let nextCloudPort = await this.prompt('in which port do you want to listen our nextCloudContainer?', '8000')
         // let dbPass = await this.prompt('DBpass? please enter if you want to set default, elesewere please type.', 'root')
         let dbPass = 'root';
         let addAdminer = await this.prompt('do you want to add phpMyAdmin (yes/no) ?', 'no')
@@ -32,18 +33,21 @@ const services = new class Services {
         if (addAdminer.toLowerCase() === 'yes') {
             adminerPort = await this.prompt('in which port do you want to listen phpMyAdmin ?', '8080')
         }
-        let dockerComposeFileMettar = require('./templates/docker-compose')({ imagename, webPort, dbPass, addAdminer, adminerPort });
+        let dockerComposeFileMettar = require('./templates/docker-compose')({ imagename, webPort, dbPass, addAdminer, adminerPort, nextCloudPort });
         this.fs.writeFileSync(this.docker_compose_path, dockerComposeFileMettar, 'utf8');
         this.exec(`docker-compose -f ${this.docker_compose_path} up -d`)
     }
     down() {
-        this.exec(`docker-compose -f ${this.docker_compose_path} down`)
+        this.exec(`docker-compose -f ${this.docker_compose_path} down ${process.argv.slice(3).join(' ')}`)
     }
     logs() {
-        this.exec(`docker-compose -f ${this.docker_compose_path} logs`)
+        this.exec(`docker-compose -f ${this.docker_compose_path} logs ${process.argv.slice(3).join(' ')}`)
+    }
+    runDocker() {
+        this.exec(`docker-compose -f ${this.docker_compose_path} ${process.argv.slice(2).join(' ')}`)
     }
     run(service) {
-        this[service]()
+        this[service] ? this[service]() : this.runDocker()
     }
 }
 services.run(process.argv[2])
