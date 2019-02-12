@@ -1,4 +1,4 @@
-# kubify-task-fiverr
+# kubify-task
 - [kubify-task-fiverr](#kubify-task-fiverr)
   - [install Dependencies](#install-dependencies)
     - [install NodeJS](#install-nodejs)
