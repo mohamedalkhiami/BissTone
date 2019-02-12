@@ -18,7 +18,7 @@ const services = new class Services {
         }));
     }
     async build() {
-        let imagename = await this.prompt('what is image name?', 'kubify-task-fiverr')
+        let imagename = await this.prompt('what is image name?', 'kubify-task')
         this.exec(`docker build -t ${imagename} .`)
         return imagename
     }
