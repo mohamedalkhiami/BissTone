@@ -1,5 +1,5 @@
 module.exports = ({ imagename, webPort, nextCloudPort, dbPass, addAdminer, adminerPort }) => {
-  imagename = imagename || "kubify-task-fiverr"
+  imagename = imagename || "kubify-task"
   nextCloudPort = nextCloudPort - 0 || 3000;
   webPort = webPort - 0 || 80;
   dbPass = dbPass || "root"
